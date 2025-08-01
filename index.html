@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>IRYS Mindshare Checker</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(to bottom right, #101820, #1a1f25);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        height: 100vh;
+        margin: 0;
+        padding: 20px;
+        color: #ffffff;
+      }
+
+      h1 {
+        color: #51ffd6;
+        font-size: 32px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      h1 img {
+        height: 36px;
+        border-radius: 6px;
+      }
+
+      .input-group {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      input {
+        padding: 14px 18px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: 2px solid #51ffd6;
+        background-color: transparent;
+        color: #ffffff;
+        width: 280px;
+        outline: none;
+        transition: 0.2s;
+      }
+
+      input:focus {
+        border-color: #ffffff;
+      }
+
+      button {
+        padding: 14px 22px;
+        font-size: 16px;
+        background-color: #51ffd6;
+        color: #101820;
+        font-weight: bold;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.2s ease-in-out;
+      }
+
+      button:hover {
+        background-color: #3eeac2;
+      }
+
+      .output-box {
+        background: #181f26;
+        padding: 32px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        min-width: 300px;
+        max-width: 600px;
+        animation: fadeIn 0.4s ease-in-out;
+        text-align: center;
+        color: #ffffff;
+        border: 2px solid #51ffd6;
+        margin-top: 20px;
+        transition: all 0.3s ease-in-out;
+      }
+
+      .output-box strong {
+        font-size: 22px;
+        color: #51ffd6;
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .error {
+        background: #2a2a2a;
+        color: #ff6b6b;
+        font-weight: bold;
+        padding: 16px 20px;
+        border-radius: 10px;
+        border: 2px solid #ff6b6b;
+        box-shadow: 0 6px 12px rgba(255, 107, 107, 0.1);
+        max-width: 400px;
+        text-align: center;
+        margin-top: 20px;
+        animation: popFade 0.3s ease-in-out;
+      }
+
+      .loader {
+        border: 6px solid #1a1f25;
+        border-top: 6px solid #51ffd6;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 40px auto 0 auto;
+      }
+
+      .slider-container {
+        margin-top: 25px;
+      }
+
+      input[type="range"] {
+        width: 100%;
+        margin-top: 10px;
+      }
+
+      .usd-estimate {
+        margin-top: 10px;
+        font-size: 16px;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      @keyframes popFade {
+        0% {
+          opacity: 0;
+          transform: scale(0.9);
+        }
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .powered-by {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        font-size: 14px;
+        color: #51ffd6;
+      }
+
+      .powered-by a {
+        color: #51ffd6;
+        text-decoration: none;
+        font-weight: bold;
+      }
+
+      .powered-by a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="powered-by">
+      Test by
+      <a href="https://x.com/valordefi" target="_blank">@valordefi</a>
+    </div>
+
+    <h1>
+      <img src="iryslogo.jpg" alt="IRYS Logo" />
+      IRYS Mindshare Checker
+    </h1>
+
+    <div class="input-group">
+      <input type="text" id="usernameInput" placeholder="Enter X username" />
+      <button onclick="searchMindshare()">Check</button>
+    </div>
+
+    <div id="output"></div>
+
+    <script>
+      async function searchMindshare() {
+        const username = document.getElementById("usernameInput").value.trim();
+        const output = document.getElementById("output");
+        const globalMindshare = 400;
+        const totalPool = 7500000;
+
+        if (!username) {
+          output.innerHTML = `<div class="error">⚠️ Please enter a username.</div>`;
+          return;
+        }
+
+        output.innerHTML = `<div class="loader"></div>`;
+
+        try {
+          const res = await fetch(`/api/user?username=${username}`);
+          const json = await res.json();
+
+          const data30d = json.data30;
+          const data90d = json.data90;
+
+          const user30d = data30d.community_mindshare.top_1000_yappers.find(
+            (u) => u.username === username
+          );
+          const user90d = data90d.community_mindshare.top_1000_yappers.find(
+            (u) => u.username === username
+          );
+
+          if (!user30d && !user90d) {
+            output.innerHTML = `
+              <div class="error">
+                ❌ @${username} not found in top 1000 (30D or 3M)
+              </div>`;
+            return;
+          }
+
+          const share30 = user30d ? user30d.mindshare : 0;
+          const share3m = user90d ? user90d.mindshare : 0;
+          const totalShare = (share30 * 0.5 + share3m * 1.1) * 100;
+
+          const baseReward = (totalShare / globalMindshare) * totalPool;
+          const adjustedReward = Math.sqrt(baseReward) * 100;
+          const finalReward = Math.min(adjustedReward, 19990);
+
+          output.innerHTML = `
+            <div class="output-box">
+              <strong>${finalReward.toFixed(2)} $IRYS</strong>
+              <div>Estimated reward based on your leaderboard presence and mindshare.</div>
+              <div class="slider-container">
+                <div style="margin-top: 20px; font-weight: bold; color: #51ffd6">
+                  Simulate FDV: <span id="fdvLabel">$1.00B</span>
+                </div>
+                <input type="range" id="fdvSlider" min="10" max="10000" step="10" value="1000" />
+                <div class="usd-estimate">
+                  Your reward would be worth
+                  <strong id="rewardUSD">~$${(
+                    (finalReward * 1000000000) /
+                    1000000000
+                  ).toFixed(2)}</strong>
+                </div>
+              </div>
+            </div>`;
+
+          const slider = document.getElementById("fdvSlider");
+          const label = document.getElementById("fdvLabel");
+          const usd = document.getElementById("rewardUSD");
+
+          slider.addEventListener("input", () => {
+            const fdvBillion = slider.value / 1000;
+            label.textContent = `$${fdvBillion.toFixed(2)}B`;
+            const rewardUSD =
+              (finalReward * (fdvBillion * 1_000_000_000)) / 1_000_000_000;
+            usd.textContent = `~$${rewardUSD.toFixed(2)}`;
+          });
+        } catch (err) {
+          console.error(err);
+          output.innerHTML = `<div class="error">🚫 Error: ${err.message}</div>`;
+        }
+      }
+    </script>
+  </body>
+</html>
