@@ -99,23 +99,35 @@
 
       .slider-container {
         margin-top: 25px;
-        text-align: left;
+        text-align: center;
       }
 
-      .slider-container input[type="range"] {
+      .slider-title {
+        font-weight: bold;
+        color: #51ffd6;
+        margin-bottom: 10px;
+        font-size: 16px;
+      }
+
+      .slider-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        justify-content: center;
+      }
+
+      .slider-row input[type="range"] {
         -webkit-appearance: none;
-        width: 100%;
+        width: 250px;
         height: 8px;
         background: #2e3b47;
         border-radius: 8px;
         outline: none;
-        margin-top: 10px;
         transition: background 0.3s ease-in-out;
       }
 
-      .slider-container input[type="range"]::-webkit-slider-thumb {
+      .slider-row input[type="range"]::-webkit-slider-thumb {
         -webkit-appearance: none;
-        appearance: none;
         width: 18px;
         height: 18px;
         border-radius: 50%;
@@ -125,17 +137,25 @@
         transition: transform 0.2s ease;
       }
 
-      .slider-container input[type="range"]::-webkit-slider-thumb:hover {
+      .slider-row input[type="range"]::-webkit-slider-thumb:hover {
         transform: scale(1.15);
       }
 
-      .slider-container input[type="range"]::-moz-range-thumb {
+      .slider-row input[type="range"]::-moz-range-thumb {
         width: 18px;
         height: 18px;
         border-radius: 50%;
         background: #51ffd6;
         cursor: pointer;
         border: 2px solid #ffffff;
+      }
+
+      .slider-min,
+      .slider-max {
+        font-size: 14px;
+        color: #ccc;
+        width: 40px;
+        text-align: center;
       }
 
       .usd-estimate {
@@ -283,16 +303,18 @@
               <strong>${finalReward.toFixed(2)} $IRYS</strong>
               <div>Estimated reward based on your leaderboard presence and mindshare.</div>
               <div class="slider-container">
-                <div style="margin-top: 20px; font-weight: bold; color: #51ffd6">
-                  Simulate FDV: <span id="fdvLabel">$1.00B</span>
+                <div class="slider-title">
+                  🎚️ Simulate FDV: <span id="fdvLabel">$1.00B</span>
                 </div>
-                <input type="range" id="fdvSlider" min="10" max="10000" step="10" value="1000" />
+                <div class="slider-row">
+                  <span class="slider-min">$1M</span>
+                  <input type="range" id="fdvSlider" min="1" max="5000" step="1" value="1000" />
+                  <span class="slider-max">$5B</span>
+                </div>
                 <div class="usd-estimate">
-                  Your reward would be worth
-                  <strong id="rewardUSD">~$${(
-                    (finalReward * 1000000000) /
-                    1000000000
-                  ).toFixed(2)}</strong>
+                  Your reward would be worth <strong id="rewardUSD">~$${finalReward.toFixed(
+                    2
+                  )}</strong>
                 </div>
               </div>
             </div>`;
@@ -302,11 +324,17 @@
           const usd = document.getElementById("rewardUSD");
 
           slider.addEventListener("input", () => {
-            const fdvBillion = slider.value / 1000;
-            label.textContent = `$${fdvBillion.toFixed(2)}B`;
-            const rewardUSD =
-              (finalReward * (fdvBillion * 1_000_000_000)) / 1_000_000_000;
-            usd.textContent = `~$${rewardUSD.toFixed(2)}`;
+            const fdvMillion = slider.value;
+            const fdvValue = fdvMillion * 1_000_000;
+            const pricePerToken = fdvValue / 1_000_000_000;
+            const rewardUSDValue = finalReward * pricePerToken;
+
+            label.textContent =
+              fdvMillion >= 1000
+                ? `$${(fdvMillion / 1000).toFixed(2)}B`
+                : `$${fdvMillion}M`;
+
+            usd.textContent = `~$${rewardUSDValue.toFixed(2)}`;
           });
         } catch (err) {
           console.error(err);
